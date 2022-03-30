@@ -6,7 +6,7 @@ For more detailed analysis, one needs to know which way the instrument is "looki
 
 ## Basic procedure
 
-Given an all-sky image, we have metadata about the date and time as well as the location of the imager. Based on this, we can calculate the positions of stars in the sky and this provides as with known targets.
+Given an all-sky image, we have metadata about the date and time as well as the location of the imager. Based on this, we can calculate the positions of stars in the sky and this provides us with known targets.
 
 1. Select an image where stars are clearly visible
 2. Use the date, time and location to calculate star positions to produce a sky chart (e.g. astropy, Stellarium)
