@@ -23,6 +23,14 @@ Given an all-sky image, we have metadata about the date and time as well as the 
   - calibration parameters that you can use to e.g. project data on maps for further analysis such as satellite trajectories across the field-of-views of the imagers
 - example calibrations for selected instruments at [Kjell Henriksen Observatory](http://kho.unis.no)
 
+## Notes
+
+The short test scripts are there to do a quick functional test, but for an
+actual scientific study, one should use a larger number of reference points (stars). However, even with only four stars, we can obtain a pretty good results that may be sufficient.
+
+See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=urn:nbn:se:uu:diva-388546) by Joshua Dreyer.
+
+
 ## To do
 
 - [ ] Convert Matlab-scripts to python

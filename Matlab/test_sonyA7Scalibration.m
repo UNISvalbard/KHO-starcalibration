@@ -1,12 +1,40 @@
-% Testing the star calibration
-% 1) Run the file reading test to read the image and to define the
-%    locations of stars in the image
+% Testing the star calibration with the Sony images
+% 1) Read the image and to define the locations of stars in the image
 % 2) Run the calibration parameter optimisation routine
 % 3) Plot results
 
 clear
+filename=fullfile('..','Test_images/','LYR-Sony-111220_200933.jpg');
+img=imread(filename);
 
-test_readairglow;
+imshow(img)
+axis on
+title('Sony A7S 2020/12/11 20:09:33 UT')
+
+% Since the image is practically taken at the same time as the airglow
+% image, we are using the same stars and just update the pixel coordinates
+
+starNames={'Vega','Capella','Dubhe','Deneb'};
+
+starAz=[306+42/60+19.3/3600, ... % Stellarium shows the azimuth in degrees, 
+    129+20/60+26.5/3600, ...     % minutes and seconds
+    39+22/60+51.8/3600, ...
+    280+15/60+56.1/3600];
+
+starAlt=[32+21/60+35.9/3600, ...
+    54+19/60+2.7/3600, ...
+    53+24/60+34.4/3600, ...
+    44+27.5/60+57.6/3600];
+
+starRow=[599, 2005, 1219, 982];
+starCol=[1822, 1196, 861, 2015];
+
+hold on
+plot(starCol, starRow, 'ro','markersize',10)
+text(starCol+15, starRow, starNames,'color','r')
+hold off
+
+%---------------------------------------------------
 
 [zenithRow, zenithCol, k, rotAngle]= ...
     starcalibration(img,starAlt,starAz, starRow, starCol);

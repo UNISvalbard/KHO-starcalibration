@@ -5,6 +5,8 @@
 % 16-bit intensity values, we use the square root to compress the range to
 % 8 bits for visualisation purposes.
 
+clear
+
 filename=fullfile('..','Test_images/','W8446B18_2020-12-11_20-09-36.img');
 img=readairglow(filename);
 
