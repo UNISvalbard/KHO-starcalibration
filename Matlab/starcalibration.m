@@ -1,5 +1,5 @@
 function [zenithRow, zenithCol, k, rotAngle]= ...
-    starcalibration(img, starAlt, starAz, starRow, starCol)
+    starcalibration(imgsize, starAlt, starAz, starRow, starCol)
 %
 % Estimation of camera calibration parameters for auroral all-sky
 % cameras using fish-eye lenses
@@ -29,7 +29,7 @@ function [zenithRow, zenithCol, k, rotAngle]= ...
 %    starcalibration(img, starAlt, starAz, starRow, starCol)
 %
 % The input parameters are
-%    img      all-sky image
+%    imgsize  size of the all-sky image
 %
 %    starAlt  altitudes (above horizon) of the selected stars
 %    starAz   azimuths
@@ -44,15 +44,15 @@ function [zenithRow, zenithCol, k, rotAngle]= ...
 %    k         the coefficient [pixels/degree]
 %
 %    rotAngle  the rotation about the optical axis between the
-%              north and the horizontal axis (pixel columns) of the image.
+%              north and the vertical axis (pixel columns) of the image.
 %              A positive value means that if you rotate the image right,
 %              then the image will be aligned north-south with north being
 %              up (if the upper left corner is at (1,1) in pixel
 %              coordinates)
 %
 
-zenithRow=size(img,1)/2;
-zenithCol=size(img,2)/2;
+zenithRow=imgsize(1)/2;
+zenithCol=imgsize(2)/2;
 
 % and then do a rough estimate of the calibration coefficient
 % using the zenith angle and (pixel) distances from the zenith to

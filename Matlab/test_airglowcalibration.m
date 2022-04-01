@@ -1,16 +1,29 @@
-% Testing the star calibration with the Sony images
+% Testing the star calibration for the all-sky airglow imager
 % 1) Read the image and to define the locations of stars in the image
 % 2) Run the calibration parameter optimisation routine
 % 3) Plot results
 
 clear
 
-filename=fullfile('..','Test_images/','LYR-Sony-111220_200933.jpg');
-img=im2double(imread(filename));
+filename=fullfile('..','Test_images/','W8446B18_2020-12-11_20-09-36.img');
+img=readairglow(filename);
 
-imshow(sqrt(img))
-axis on
-title('Sony A7S 2020/12/11 20:09:33 UT')
+imagesc(sqrt(img))
+axis image
+colormap('gray')
+title('KHO airglow imager 2020/12/11 20:09:36UT')
+
+minvalue=min(img,[],'all');
+maxvalue=max(img,[],'all');
+
+% A quick test whether the image was read in correctly
+if minvalue~=51
+    error('Minimum pixel intensity value not 51 as expected!')
+end
+
+if maxvalue~=64941
+    error('Minimum pixel intensity value not 64941 as expected!')
+end
 
 %--------------------------------------------------
 % Label a couple of identified stars/planets
@@ -73,15 +86,14 @@ starAlt=[32+21/60+29.8/3600, ...
     66+23/60+40.8/3600, ...
     62+18/60+47.9/3600];
 
+starCol=[340, 206, 138, 380, 274, 299, 332, 376, 294, ...
+    120, 119, 142, 148, 237, 237,159,89,334,334,214]; % X
 
-starCol=[1822, 1196, 861, 2015, 1521, 1615,1796, ...
-        2007,1597,774,764,871,896,1334,1341,943,613,1798,1799,1222];
-
-starRow=[599, 2005, 1219, 982, 1926, 2047,1927,1881, ...
-     698,1215,1077,953,774,1288,2474,2534,1996,1509,1595,1034];
+starRow=[72, 361, 195, 150, 346, 377, 346, 337, 90, 195, ...
+    166, 140, 105, 211, 454, 460,356,259,277,158]; % Y
 
 
-%---------------------------------------------------
+%----------------------------
 % Do the star calibration
 
 [zenithRow, zenithCol, k, rotAngle]= ...
