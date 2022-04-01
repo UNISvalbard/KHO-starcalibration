@@ -34,4 +34,4 @@ See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=ur
 ## To do
 
 - [ ] Convert Matlab-scripts to python
-- [ ] Add a map projection example
+- [x] Add a map projection example
