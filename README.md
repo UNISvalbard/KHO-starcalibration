@@ -21,7 +21,7 @@ Given an all-sky image, we have metadata about the date and time as well as the 
 - short scripts that produce a "pretty good" calibration
   - the lens is assumed to be perfect i.e. we use the ideal [mapping function](https://en.wikipedia.org/wiki/Fisheye_lens#Mapping_function)
   - calibration parameters that you can use to e.g. project data on maps for further analysis such as satellite trajectories across the field-of-views of the imagers
-- example calibrations for selected instruments at [Kjell Henriksen Observatory](http://kho.unis.no)
+- example calibrations for selected instruments at [Kjell Henriksen Observatory (KHO)](http://kho.unis.no)
 
 ## Notes
 
@@ -30,6 +30,9 @@ actual scientific study, one should use a larger number of reference points (sta
 
 See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=urn:nbn:se:uu:diva-388546) by Joshua Dreyer.
 
+## Narrow field (sCMOS) camera at KHO
+
+For star calibration of the [narrow field camera](https://kho.unis.no/Instruments/sCMOS_Tracker.html), see Nick's [calibration scripts](https://github.com/n-brindley/all-sky-calibration) Please note that the camera is on a tracking platform and the star calibration needs to be carried out for each particular pointing direction...
 
 ## To do
 
