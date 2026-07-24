@@ -119,11 +119,11 @@ text(starCol+15, starRow, starNames,'color','r')
 theta=starAz*pi/180;
 d=k*(90-starAlt);
 newStarRow=zenithRow-d.*cos(theta+rotAngle);
-newStarCol=zenithRow-d.*sin(theta+rotAngle);
+newStarCol=zenithCol-d.*sin(theta+rotAngle);
 
 plot(zenithCol,zenithRow,'go')
 for i=1:length(starAz)
-    plot([zenithCol newStarCol(i)],[zenithRow newStarRow(i)],'g')
+    plot(newStarCol(i),newStarRow(i),'g+')
 end
 
 % Plot a thick long line towards north and east
@@ -141,3 +141,10 @@ plot([zenithCol eastCol],[zenithRow eastRow],'b','linewidth',3)
 text(eastCol,eastRow+15,'EAST','color','b')
 
 hold off
+
+% Quick error analysis based on true and predicted star locations
+
+rmsError=sqrt(sum((starRow-newStarRow).^2+(starCol-newStarCol).^2)...
+        /length(starCol));
+
+fprintf('Root Mean Square Error = %.2f pixels\n', rmsError);

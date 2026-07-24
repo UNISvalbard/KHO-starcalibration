@@ -27,10 +27,10 @@ img=sqrt(img);
 % Calibration parameters
 % - these are from test_airglowcalibration.m
 
-zenithRow=250.1237; 
-zenithCol=246.0591;
-k=3.3470;  % Pixels/degree 
-rotAngle=0.4783; 
+zenithRow=245.1; 
+zenithCol=255.1;
+k=3.3650;  % Pixels/degree 
+rotAngle=0.4803; 
 
 glat = 78.20; % Imager latitude
 glon = 15.70; % Imager longitude

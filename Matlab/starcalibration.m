@@ -107,7 +107,7 @@ rotAngle=myparams(4);
 theta=starAz*pi/180;
 d=k*(90-starAlt);
 newStarRow=zenithRow-d.*cos(theta+rotAngle);
-newStarCol=zenithRow-d.*sin(theta+rotAngle);
+newStarCol=zenithCol-d.*sin(theta+rotAngle);
 x=sum(((starRow-newStarRow).^2+(starCol-newStarCol).^2));
 
 end

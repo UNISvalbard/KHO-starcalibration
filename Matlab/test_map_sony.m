@@ -27,12 +27,12 @@ img=im2double(imread(filename));
 
 %-----------------------------------------------
 % Calibration parameters
-% - these are from test_airglowcalibration.m
+% - these are from test_sonyA7Scalibration.m
 
-zenithRow=1433.9;
-zenithCol=1323.9;
-k=16.3;  % Pixels/degree 
-rotAngle=0.4922; 
+zenithRow=1449.8;
+zenithCol=1426.2;
+k=16.4095;  % Pixels/degree 
+rotAngle=0.4903; 
 
 glat = 78.20; % Imager latitude
 glon = 15.70; % Imager longitude
