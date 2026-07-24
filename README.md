@@ -30,6 +30,8 @@ actual scientific study, one should use a larger number of reference points (sta
 
 See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=urn:nbn:se:uu:diva-388546) by Joshua Dreyer.
 
+A good alternative is to use Juha's more automatic [Widefield star calibrator](https://github.com/jvierine/widefield-star-calibrator), which uses a star catalogue and other convenient tools to detect stars and their locations more or less automatically.
+
 ## Narrow field (sCMOS) camera at KHO
 
 For star calibration of the [narrow field camera](https://kho.unis.no/Instruments/sCMOS_Tracker.html), see Nick's [calibration scripts](https://github.com/n-brindley/all-sky-calibration) Please note that the camera is on a tracking platform and the star calibration needs to be carried out for each particular pointing direction...
