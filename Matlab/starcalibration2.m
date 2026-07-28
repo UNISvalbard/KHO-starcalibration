@@ -41,7 +41,7 @@ function [zenithRow, zenithCol, k, rotAngle]= ...
 %    zenithRow the pixel row of the zenith (location)
 %    zenithCol the pixel column for the zenith
 %
-%    k         the coefficient [pixels/degree]
+%    k         the coefficient [pixels], used in d = k sin(z/2)
 %
 %    rotAngle  the rotation about the optical axis between the
 %              north and the vertical axis (pixel columns) of the image.
@@ -63,7 +63,7 @@ starZen=90-starAlt;
 starDistances= sqrt( (zenithRow-starRow).^2 + ...
     (zenithCol-starCol).^2);
 
-k=mean(starDistances./(starZen*pi/180/2));
+k=mean(starDistances./sin(starZen*pi/180/2));
 
 % Start with a rough rotation angle based on the offset between
 % the geodetic and geomagnetic north direction at KHO
