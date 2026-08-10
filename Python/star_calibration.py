@@ -1,7 +1,7 @@
 """
 star_calibration.py
 
-Estimate all-sky camera calibration parameters for auroral/all-sky cameras
+Estimate all-sky camera calibration parameters for all-sky cameras
 with fish-eye lenses, from a set of reference stars whose sky position
 (altitude, azimuth) and pixel position (row, column) are both known.
 
@@ -22,8 +22,8 @@ Library usage
     print(result["zenith_row"], result["zenith_col"], result["params"])
 
 Run directly for a full worked example that loads an image and a star
-table, calibrates, prints, and plots the result (edit the CONFIG section
-in _run_example() below for your own files):
+table, calibrates, prints, and plots the result (edit the CONFIG block
+near the top of this file for your own files):
 
     python star_calibration.py
 """
@@ -34,6 +34,14 @@ import numpy as np
 from scipy.optimize import minimize
 
 from lens_models import MODELS, LensModel
+
+
+# ============================================================================
+# CONFIG block — edit these when running: python star_calibration.py
+# ============================================================================
+MODEL = "equisolid"          # 'equidistant' | 'equisolid' | 'equisolid_ext'
+IMAGE_PATH = Path("Test_images") / "2025-01-01" / "C004_20250101_084000.png"
+STAR_TABLE_PATH = Path("selected_stars_WISC") / "NY_20250101_selected_stars.tsv"
 
 
 # ============================================================================
@@ -176,13 +184,6 @@ def _run_example():
     import matplotlib.pyplot as plt
     import matplotlib.image as mpimg
 
-    # ---- CONFIG: edit these for your own data --------------------------
-    MODEL = "equisolid_ext"          # 'equidistant' | 'equisolid' | 'equisolid_ext'
-    IMAGE_PATH = Path("Test_images") / "LYR-Sony-111220_200933.jpg"
-    STAR_TABLE_PATH = Path("selected_stars_WISC") / "selected_stars_LYR_20201211.tsv"
-    ROT_ANGLE0_DEG = 25.0             # initial guess (KHO geodetic/geomagnetic offset)
-    # ----------------------------------------------------------------------
-
     img = mpimg.imread(IMAGE_PATH).astype(float)
     if img.max() > 1.0:
         img = img / 255.0
@@ -195,17 +196,20 @@ def _run_example():
     star_row = stars["star_row_px_1based"].to_numpy(dtype=float)
 
     result = calibrate_camera(img.shape[:2], star_alt, star_az, star_row, star_col,
-                               model=MODEL, rot_angle0_deg=ROT_ANGLE0_DEG)
+                               model=MODEL)
 
     print("-------------------------------------------------------")
+    print(f"         Image = {IMAGE_PATH.name}")
     print(f"         Model = {result['model']}")
-    print(f"        Zenith = ({result['zenith_row']:.1f}, {result['zenith_col']:.1f})")
+    print(f"         Selected stars = {len(stars)}")
+    print(f"        Zenith (row, col) = ({result['zenith_row']:.1f}, {result['zenith_col']:.1f})")
     for name, val in result["params"].items():
-        print(f"             {name} = {val:.3f}")
-    print(f"Rotation angle = {result['rot_angle']:.3f} rad ({result['rot_angle_deg']:.1f} deg)")
+        print(f"             {name} = {val:.1f}")
+    print(f"Rotation angle = {result['rot_angle']:.2f} rad ({result['rot_angle_deg']:.1f} deg)")
     print(f"           RMS = {result['rms_error']:.2f} pixels")
     if not result["success"]:
         print("WARNING: optimiser did not report convergence -- inspect result['fit'].")
+    print("-------------------------------------------------------")
 
     new_row, new_col = predict_star_positions(result, star_alt, star_az)
 
