@@ -1,42 +1,76 @@
 # Star calibration of all-sky images
 
-All-sky auroral imagers are used in studying the physical processes that take place in the upper atmosphere. The name "all-sky" refers to an ultra wide-angle field-of-view: one image captures the whole sky. Typically one uses so called circular fish-eye lenses where you get a smaller circular image of the whole sky inside the image frame.
-
-For more detailed analysis, one needs to know which way the instrument is "looking". In other words, which pixel in the image corresponds to the zenith (straight up), which way is north and east etc. In computer vision terminology, this is called camera calibration. However, in the context of auroral research, one usually uses the term "star calibration" to separate this procedure from *intensity* calibration, where the recorded intensitites are mapped to physical units.
+All-sky auroral imagers use fish-eye lenses that capture the whole sky in one frame. **Star calibration** finds the zenith pixel, the lens scale `k`, and the rotation angle `z` (offset from geodetic to geomagnetic north) — geometric camera calibration using stars as known targets (distinct from intensity calibration).
 
 ## Basic procedure
 
-Given an all-sky image, we have metadata about the date and time as well as the location of the imager. Based on this, we can calculate the positions of stars in the sky and this provides us with known targets.
+1. Pick an image with clearly visible stars
+2. From date, time, and location, get each star’s altitude and azimuth (e.g. Astropy, Stellarium)
+3. Record each star’s pixel position `(row, col)` in the image
+4. Fit the camera parameters (zenith location, rotation, lens model)
 
-1. Select an image where stars are clearly visible
-2. Use the date, time and location to calculate star positions to produce a sky chart (e.g. astropy, Stellarium)
-3. Identify the stars visible in the image
-   - take a note of the azimuth and altitude of the stars apparent position
-   - determine the pixel location (row, column) of the star in the image
-5. Estimate the camera parameters based on the stars' locations
-   - note that there are several different lens projections
+More stars give a better fit; four can already be “pretty good” for many uses. See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=urn:nbn:se:uu:diva-388546) by Joshua Dreyer.
 
-## What you will find in this repo
+For a more automatic pipeline, see Juha’s [Widefield star calibrator](https://github.com/jvierine/widefield-star-calibrator).
 
-- short scripts that produce a "pretty good" calibration
-  - the lens is assumed to be perfect i.e. we use the ideal [mapping function](https://en.wikipedia.org/wiki/Fisheye_lens#Mapping_function)
-  - calibration parameters that you can use to e.g. project data on maps for further analysis such as satellite trajectories across the field-of-views of the imagers
-- example calibrations for selected instruments at [Kjell Henriksen Observatory (KHO)](http://kho.unis.no)
+---
 
-## Notes
+## Python (recommended)
 
-The short test scripts are there to do a quick functional test, but for an
-actual scientific study, one should use a larger number of reference points (stars). However, even with only four stars, we can obtain a pretty good results that may be sufficient.
+`Python/star_calibration.py` estimates zenith `(row, col)`, rotation about the optical axis, and lens parameters from known star positions.
 
-See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=urn:nbn:se:uu:diva-388546) by Joshua Dreyer.
+### Setup
 
-A good alternative is to use Juha's more automatic [Widefield star calibrator](https://github.com/jvierine/widefield-star-calibrator), which uses a star catalogue and other convenient tools to detect stars and their locations more or less automatically.
+```bash
+pip install -r requirements.txt
+```
 
-## Narrow field (sCMOS) camera at KHO
+### Quick start (worked example)
 
-For star calibration of the [narrow field camera](https://kho.unis.no/Instruments/sCMOS_Tracker.html), see Nick's [calibration scripts](https://github.com/n-brindley/all-sky-calibration) Please note that the camera is on a tracking platform and the star calibration needs to be carried out for each particular pointing direction...
+Edit the `CONFIG` block at the top of `Python/star_calibration.py` (`MODEL`, `IMAGE_PATH`, `STAR_TABLE_PATH`), then from the repo root:
 
-## To do
+```bash
+cd Python
+python star_calibration.py
+```
 
-- [ ] Convert Matlab-scripts to python
-- [x] Add a map projection example
+This loads an image + star table (TSV), fits, prints parameters / RMS, and plots measured vs predicted stars with north/east markers.
+
+Example star tables live in `selected_stars_WISC/` (columns include `altitude_deg`, `azimuth_deg`, `star_row_px_1based`, `star_col_px_1based`). Sample images are under `Test_images/`.
+
+### Library usage
+
+```python
+from star_calibration import calibrate_camera, predict_star_positions
+
+result = calibrate_camera(
+    img.shape[:2], star_alt, star_az, star_row, star_col,
+    model="equisolid",          # or "equidistant" | "equisolid_ext"
+)
+# result: zenith_row/col, rot_angle(_deg), params, rms_error, ...
+
+pred_row, pred_col = predict_star_positions(result, star_alt, star_az)
+```
+
+### Lens models
+
+| Model | Mapping (`z` = zenith angle) | Parameters |
+| ----- | ---------------------------- | ---------- |
+| `equidistant` | `d = k · z` | `k` (px/deg) |
+| `equisolid` | `d = k · sin(z/2)` | `k` (px) |
+| `equisolid_ext` | `d = k · sin(a·z) + p` | `k`, `a`, `p` |
+
+Defined in `Python/lens_models.py` (same models as the MATLAB `starcalibration*.m` scripts).
+
+---
+
+## MATLAB (legacy)
+
+Original scripts and map-projection examples are in `Matlab/`. Prefer the Python tools above for new work; see [`Matlab/README.md`](Matlab/README.md) for details.
+
+---
+
+## Other notes
+
+- Example calibrations / images for instruments at [Kjell Henriksen Observatory (KHO)](http://kho.unis.no)
+- Narrow-field sCMOS at KHO: use Nick’s [calibration scripts](https://github.com/n-brindley/all-sky-calibration) (tracking mount → calibrate per pointing)
