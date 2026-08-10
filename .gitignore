@@ -29,3 +29,27 @@ helpsearch*/
 
 # Matlab code generation folders
 codegen/
+
+#--------------------------
+# Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Tooling / type checkers
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
