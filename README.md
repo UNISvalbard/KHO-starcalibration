@@ -9,7 +9,7 @@ All-sky auroral imagers use fish-eye lenses that capture the whole sky in one fr
 3. Record each star’s pixel position `(row, col)` in the image
 4. Fit the camera parameters (zenith location, rotation, lens model)
 
-More stars give a better fit; four can already be “pretty good” for many uses. See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=urn:nbn:se:uu:diva-388546) by Joshua Dreyer.
+More stars give a better fit and we recommend using at least 20 spread across the whole field of view. Note that 4 can already be “pretty good” for many uses. See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=urn:nbn:se:uu:diva-388546) by Joshua Dreyer. 
 
 For a more automatic pipeline, see Juha’s [Widefield star calibrator](https://github.com/jvierine/widefield-star-calibrator).
 
