@@ -7,8 +7,9 @@ All-sky auroral imagers use fish-eye lenses that capture the whole sky in one fr
 1. Pick an image with clearly visible stars
 2. From date, time, and location, get each star’s altitude and azimuth (e.g. Astropy, Stellarium)
 3. Record each star’s pixel position `(row, col)` in the image
-4. Fit the camera parameters (zenith location, rotation, lens model)
+4. Fit the camera parameters (zenith location, rotation, lens model) using star_calibration.py
 
+Step 2 and 3 can be done with [Widefield star calibrator](https://github.com/jvierine/widefield-star-calibrator).
 More stars give a better fit and we recommend using at least 20 spread across the whole field of view. Note that 4 can already be “pretty good” for many uses. See e.g. [A detailed study of auroral fragments](http://urn.kb.se/resolve?urn=urn:nbn:se:uu:diva-388546) by Joshua Dreyer. 
 
 For a more automatic pipeline, see Juha’s [Widefield star calibrator](https://github.com/jvierine/widefield-star-calibrator).
@@ -17,7 +18,7 @@ For a more automatic pipeline, see Juha’s [Widefield star calibrator](https://
 
 ## Python (recommended)
 
-`Python/star_calibration.py` estimates zenith `(row, col)`, rotation about the optical axis, and lens parameters from known star positions.
+`Python/star_calibration.py` estimates zenith `(row, col)`, rotation about the optical axis `z`, and lens parameter(s) `k` from known star positions.
 
 ### Setup
 
