@@ -13,6 +13,13 @@ plus one or more lens-model parameters (k, and for the extended equisolid
 model also a and p) supplied by whichever LensModel is selected from
 lens_models.py.
 
+Image orientation
+-----------------
+The default layout is a sky chart: when north is up (decreasing row),
+east is to the left (decreasing column). Pass orientation="west_left"
+for a left-right mirrored camera (north up, west left). See
+calibrate_camera() for details.
+
 Library usage
 -------------
     from star_calibration import calibrate_camera, predict_star_positions
@@ -40,8 +47,9 @@ from lens_models import MODELS, LensModel
 # CONFIG block — edit these when running: python star_calibration.py
 # ============================================================================
 MODEL = "equisolid"          # 'equidistant' | 'equisolid' | 'equisolid_ext'
-IMAGE_PATH = Path("Test_images") / "2025-01-01" / "C004_20250101_084000.png"
-STAR_TABLE_PATH = Path("selected_stars_WISC") / "NY_20250101_selected_stars.tsv"
+ORIENTATION = "west_left"    # 'east_left' (sky chart, default) | 'west_left' (mirrored)
+IMAGE_PATH = Path("Test_images") / "2020-02-18" / "BACC_NYA_20200218_010731.png"
+STAR_TABLE_PATH = Path("selected_stars_WISC") / "BACC_NYA_20200218_selected_stars.tsv"
 
 
 # ============================================================================
@@ -59,23 +67,48 @@ def _unpack_params(x, n_extra):
     return zenith_row, zenith_col, extra_params, rot_angle
 
 
-def _predicted_positions(zenith_row, zenith_col, rot_angle, d, star_az_deg):
+# Sky-chart default: north up, east left. "west_left" is a left-right mirror.
+ORIENTATIONS = ("east_left", "west_left")
+
+
+def _check_orientation(orientation):
+    if orientation not in ORIENTATIONS:
+        raise ValueError(
+            f"orientation must be one of {ORIENTATIONS}, got {orientation!r}"
+        )
+    return orientation
+
+
+def _predicted_positions(zenith_row, zenith_col, rot_angle, d, star_az_deg,
+                          orientation="east_left"):
+    # With rot_angle = 0, north (az=0) is toward decreasing row (up).
+    # east_left  (default): east (az=90) is toward decreasing column (left),
+    #   as on a sky chart, with no left-right mirroring.
+    # west_left: east is toward increasing column (right) — horizontally
+    #   mirrored cameras, so west is left when north is up.
     theta = np.deg2rad(star_az_deg)
     row = zenith_row - d * np.cos(theta + rot_angle)
-    col = zenith_col - d * np.sin(theta + rot_angle)
+    sin_term = d * np.sin(theta + rot_angle)
+    if orientation == "east_left":
+        col = zenith_col - sin_term
+    else:
+        col = zenith_col + sin_term
     return row, col
 
 
-def _cost(x, model: LensModel, star_alt, star_az, star_row, star_col, n_extra):
+def _cost(x, model: LensModel, star_alt, star_az, star_row, star_col, n_extra,
+          orientation):
     zenith_row, zenith_col, extra_params, rot_angle = _unpack_params(x, n_extra)
     z_deg = 90 - star_alt
     d = model.distance(z_deg, extra_params)
-    row, col = _predicted_positions(zenith_row, zenith_col, rot_angle, d, star_az)
+    row, col = _predicted_positions(zenith_row, zenith_col, rot_angle, d, star_az,
+                                    orientation)
     return np.sum((star_row - row) ** 2 + (star_col - col) ** 2)
 
 
 def calibrate_camera(imgsize, star_alt, star_az, star_row, star_col,
-                      model="equisolid_ext", rot_angle0_deg=25.0):
+                      model="equisolid", rot_angle0_deg=25.0,
+                      orientation="east_left"):
     """
     Estimate all-sky camera calibration parameters by least-squares fitting
     of measured star pixel positions to their known sky positions.
@@ -96,6 +129,12 @@ def calibrate_camera(imgsize, star_alt, star_az, star_row, star_col,
         degrees comes from the geodetic/geomagnetic north offset at KHO
         (Kjell Henriksen Observatory, Svalbard) in the original scripts --
         adjust it for your own site/camera.
+    orientation : {'east_left', 'west_left'}
+        Layout of azimuth in the image, after rotating so that north is up
+        (toward decreasing row). Default 'east_left' is a sky chart: east
+        is to the left (decreasing column), with no left-right mirroring.
+        Use 'west_left' for a horizontally mirrored camera (north up, west
+        left / east right).
 
     Returns
     -------
@@ -107,9 +146,11 @@ def calibrate_camera(imgsize, star_alt, star_az, star_row, star_col,
                                    e.g. {'k': ...} or {'k': ..., 'a': ..., 'p': ...}
         rms_error                : float, pixels
         model                    : str, name of the lens model used
+        orientation              : str, the orientation used for the fit
         success                  : bool, whether the optimiser converged
         fit                      : the raw scipy.optimize.OptimizeResult
     """
+    orientation = _check_orientation(orientation)
     star_alt = np.asarray(star_alt, dtype=float)
     star_az = np.asarray(star_az, dtype=float)
     star_row = np.asarray(star_row, dtype=float)
@@ -134,7 +175,8 @@ def calibrate_camera(imgsize, star_alt, star_az, star_row, star_col,
     # Nelder-Mead is the direct equivalent of MATLAB's fminsearch.
     fit = minimize(
         _cost, x0,
-        args=(lens_model, star_alt, star_az, star_row, star_col, n_extra),
+        args=(lens_model, star_alt, star_az, star_row, star_col, n_extra,
+              orientation),
         method="Nelder-Mead",
         options={"xatol": 1e-8, "fatol": 1e-8, "maxiter": 20000, "maxfev": 20000},
     )
@@ -143,7 +185,8 @@ def calibrate_camera(imgsize, star_alt, star_az, star_row, star_col,
 
     z_deg = 90 - star_alt
     d = lens_model.distance(z_deg, extra_params)
-    row, col = _predicted_positions(zenith_row, zenith_col, rot_angle, d, star_az)
+    row, col = _predicted_positions(zenith_row, zenith_col, rot_angle, d, star_az,
+                                    orientation)
     rms_error = np.sqrt(np.mean((star_row - row) ** 2 + (star_col - col) ** 2))
 
     return {
@@ -154,6 +197,7 @@ def calibrate_camera(imgsize, star_alt, star_az, star_row, star_col,
         "params": dict(zip(lens_model.param_names, extra_params)),
         "rms_error": rms_error,
         "model": lens_model.name,
+        "orientation": orientation,
         "success": bool(fit.success),
         "fit": fit,
     }
@@ -170,8 +214,9 @@ def predict_star_positions(result, star_alt, star_az):
     star_az = np.asarray(star_az, dtype=float)
     z_deg = 90 - star_alt
     d = lens_model.distance(z_deg, extra_params)
+    orientation = result.get("orientation", "east_left")
     return _predicted_positions(result["zenith_row"], result["zenith_col"],
-                                 result["rot_angle"], d, star_az)
+                                 result["rot_angle"], d, star_az, orientation)
 
 
 # ============================================================================
@@ -196,11 +241,12 @@ def _run_example():
     star_row = stars["star_row_px_1based"].to_numpy(dtype=float)
 
     result = calibrate_camera(img.shape[:2], star_alt, star_az, star_row, star_col,
-                               model=MODEL)
+                               model=MODEL, orientation=ORIENTATION)
 
     print("-------------------------------------------------------")
     print(f"         Image = {IMAGE_PATH.name}")
     print(f"         Model = {result['model']}")
+    print(f"  Orientation = {result['orientation']}")
     print(f"         Selected stars = {len(stars)}")
     print(f"        Zenith (row, col) = ({result['zenith_row']:.1f}, {result['zenith_col']:.1f})")
     for name, val in result["params"].items():
@@ -227,15 +273,15 @@ def _run_example():
     lens_model = MODELS[MODEL]
     extra_params = np.array([result["params"][n] for n in lens_model.param_names])
     d45 = lens_model.distance(np.array(45.0), extra_params)
-    rot_angle = result["rot_angle"]
-
-    north_row = result["zenith_row"] - d45 * np.cos(rot_angle)
-    north_col = result["zenith_col"] - d45 * np.sin(rot_angle)
+    north_row, north_col = _predicted_positions(
+        result["zenith_row"], result["zenith_col"], result["rot_angle"],
+        d45, 0.0, result["orientation"])
     ax.plot([result["zenith_col"], north_col], [result["zenith_row"], north_row], "b", linewidth=3)
     ax.text(north_col, north_row - 15, "NORTH", color="b")
 
-    east_row = result["zenith_row"] - d45 * np.cos(np.pi / 2 + rot_angle)
-    east_col = result["zenith_col"] - d45 * np.sin(np.pi / 2 + rot_angle)
+    east_row, east_col = _predicted_positions(
+        result["zenith_row"], result["zenith_col"], result["rot_angle"],
+        d45, 90.0, result["orientation"])
     ax.plot([result["zenith_col"], east_col], [result["zenith_row"], east_row], "b", linewidth=3)
     ax.text(east_col, east_row + 15, "EAST", color="b")
 
