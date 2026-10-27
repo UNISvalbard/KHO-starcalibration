@@ -29,11 +29,14 @@ img = np.asarray(Image.open(filename).convert("RGB"), dtype=np.float64) / 255.0
 image_height, image_width, _ = img.shape
 
 # -----------------------------------------------------------
-# Calibration parameters
+# Calibration coefficients
+
+MODEL = "equisolid"
 zenithRow = 247.2
 zenithCol = 243.6
-k = 330.8 / 100             # pixels / degree (/ 100 because its 100x too big I guess - this is coming from star_calibration.py)
+k = 330.8        # pixels
 rotAngle = 0.50       # radians
+p = 0 # needed for EQUISOLID_EXT lens model
 
 glat = 78.20            # imager latitude, degrees
 glon = 15.70            # imager longitude, degrees
@@ -83,7 +86,7 @@ r = (Re + auroral_h) * np.vstack((
 ))
 
 # -----------------------------------------------------------
-# Azimuth using broadcasting (no tiled copies)
+# Azimuth using broadcasting
 dr = r - r_0[:, None]
 
 X = np.sum(dr * e_theta[:, None], axis=0)
@@ -107,9 +110,17 @@ z = np.arccos(np.clip(cos_z, -1.0, 1.0))
 z[z > np.deg2rad(max_zenith_angle)] = np.nan
 
 # Image pixel coordinates (MATLAB uses 1-based coordinates; Python uses 0-based)
-d = k * np.rad2deg(z)
-i = (zenithCol - d * np.sin(azimuth - rotAngle)) - 1.0  # row coordinate
-j = (zenithRow - d * np.cos(azimuth - rotAngle)) - 1.0  # column coordinate
+if MODEL == 'equidistant':
+    d = k * z
+elif MODEL == 'equisolid':
+    d = k * np.sin(z / 2)  
+elif MODEL == 'equisolid_ext':
+     d = k * np.sin(a * z) + p
+else:
+    print('Need to choose valid lens model')
+    
+i = (zenithCol - d * np.sin(azimuth - rotAngle)) - 1.0
+j = (zenithRow - d * np.cos(azimuth - rotAngle)) - 1.0
 
 # -----------------------------------------------------------
 # Interpolate each RGB channel at (row=i, col=j).
