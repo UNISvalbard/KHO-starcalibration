@@ -64,6 +64,26 @@ pred_row, pred_col = predict_star_positions(result, star_alt, star_az)
 Defined in `Python/lens_models.py` (same models as the MATLAB `starcalibration*.m` scripts).
 
 ---
+## Map projection of all-sky images
+
+The output of the above calibration can be used in sony_map.py to generate an image mapped onto latitude and longitude at a fixed altitude. Must choose a sensible altitude for the auroral emission, e.g. 110km for green stuff.
+
+```python
+auroral_h = 140.0 # km
+```
+Put the calibration outputs into this section
+
+```python
+# Calibration parameters
+zenithRow = 247.2
+zenithCol = 243.6
+k = 330.8 / 100 # pixels / degree (/ 100 because its 100x too big I guess - this is coming from star_calibration.py)
+rotAngle = 0.50 # radians
+```
+
+Output is plotted and saved in mapped_asc.npy
+
+ ---
 
 ## MATLAB (legacy)
 
