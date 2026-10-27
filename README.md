@@ -75,9 +75,10 @@ Put the calibration outputs into this section
 
 ```python
 # Calibration parameters
+MODEL = 'equisolid'
 zenithRow = 247.2
 zenithCol = 243.6
-k = 330.8 / 100 # pixels / degree (/ 100 because its 100x too big I guess - this is coming from star_calibration.py)
+k = 330.8 # pixels
 rotAngle = 0.50 # radians
 ```
 
